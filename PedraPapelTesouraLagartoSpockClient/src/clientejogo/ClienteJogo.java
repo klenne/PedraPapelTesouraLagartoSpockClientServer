@@ -56,6 +56,8 @@ public class ClienteJogo {
                 oos.reset();
                 //recebendo mensagem com o vencedor da rodada
                 JOptionPane.showMessageDialog(null,ois.readObject());
+                //recebendo a pontuação
+                JOptionPane.showMessageDialog(null,ois.readObject());
                 //sincronizando com o servidor os contadores de rodadas ganhas de cada jogador
                 int contadorP1=ois.readInt();
                 int contadorP2=ois.readInt();

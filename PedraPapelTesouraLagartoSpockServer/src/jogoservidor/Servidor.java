@@ -24,27 +24,27 @@ public class Servidor {
             tesouraVence = {PAPEL, LAGARTO},
             lagartoVence = {PAPEL, SPOCK},
             spockVence = {PEDRA, TESOURA};
-
+    
     ObjectInputStream ois;
     ObjectOutputStream oos;
     Jogador p1;
     Jogador p2;
-
+    
     public void startServer() {
-
+        
         try {
             ServerSocket socketServidor = new ServerSocket(12345);
             while (true) {
-
+                
                 Socket cliente = socketServidor.accept();
                 oos = new ObjectOutputStream(
                         cliente.getOutputStream());
                 ois = new ObjectInputStream(
                         cliente.getInputStream());
-
+                
                 p1 = new Jogador((String) ois.readObject());
                 p2 = new Jogador((String) ois.readObject());
-
+                
                 while (checarJogo(p1) && checarJogo(p2)) {
                     //enviando mensagem para cliente
                     enviaMensagem(p1.getNome() + " jogue:");
@@ -54,7 +54,7 @@ public class Servidor {
                     enviaMensagem(p2.getNome() + " jogue:");
                     //recebendo jogada do jogador 2
                     Jogadas j2 = traduzirJogadaRecebida((String) ois.readObject());
-
+                    
                     if (j2.equals(j1)) {
                         //se os dois jogadores jogarem a mesma opção o loop recomeça
                         enviaMensagem("Jogadas iguais, joguem novamente");
@@ -65,7 +65,7 @@ public class Servidor {
                     switch (j1) {
                         case PEDRA:
                             if (checarJogada(pedraVence, j2)) {
-
+                                
                                 p1.ganhaRodada();
                                 jogadorVenceRodada(j1, j2, p1, p2);
                             } else {
@@ -73,7 +73,7 @@ public class Servidor {
                                 jogadorVenceRodada(j2, j1, p2, p1);
                             }
                             break;
-
+                        
                         case PAPEL:
                             if (checarJogada(papelVence, j2)) {
                                 p1.ganhaRodada();
@@ -110,28 +110,29 @@ public class Servidor {
                                 jogadorVenceRodada(j2, j1, p2, p1);
                             }
                             break;
-
+                        
                     }
+                    enviaMensagem("Pontuação:\n" + p1.getNome() + ": " + p1.getContador() + "\n" + p2.getNome() + ": " + p2.getContador());
                     //sincronizando pontuação com o cliente
                     sincronizaPontuacao();
-
+                    
                 }
                 //enviando o vencedor
                 enviaMensagem(checarVencedor());
                 oos.close();
                 ois.close();
-
+                
             }
         } catch (IOException | ClassNotFoundException e) {
             System.out.println(String.format("Erro: %s",
                     e.getLocalizedMessage()));
         }
     }
-
+    
     public boolean checarJogo(Jogador p) {//checando a pontuação o jogador que faz 3 pontos primeiro vence
         return p.getContador() < 3;
     }
-
+    
     public boolean checarJogada(Jogadas[] vetorParaComparar, Jogadas valor) {//verifica  quem venceu a rodada
         for (int i = 0; i < 2; i++) {
             if (vetorParaComparar[i] == valor) {
@@ -140,7 +141,7 @@ public class Servidor {
         }
         return false;
     }
-
+    
     private String checarVencedor() {//verifica quem venceu o jogo
         String vencedor = "";
         if (p1.getContador() == 3) {
@@ -151,28 +152,28 @@ public class Servidor {
         }
         return "Parabéns " + vencedor + " você ganhou";
     }
-
+    
     private void jogadorVenceRodada(Jogadas jogada1, Jogadas jogada2, Jogador jogadorVencedor, Jogador jogadorPerdedor) throws IOException {//envia mensagem falando qual jogador venceu a rodada
-        enviaMensagem("Jogador " + jogadorVencedor.getNome() + " ganhou\n Pois: " + jogada1 + " vence " + jogada2);
-
+        enviaMensagem("Jogador " + jogadorVencedor.getNome() + " ganhou\n" + jogada1.toString().toLowerCase() + " vence " + jogada2.toString().toLowerCase());
+        
     }
-
+    
     public void enviaMensagem(String mensagem) throws IOException {//envia mensagens para o cliente
 
         oos.flush();
         oos.writeObject(mensagem);
         oos.reset();
     }
-
+    
     public void sincronizaPontuacao() throws IOException {//sincroniza a pontuação com cliente
         oos.flush();
         oos.writeInt(p1.getContador());
         oos.reset();
         oos.writeInt(p2.getContador());
         oos.reset();
-
+        
     }
-
+    
     public Jogadas traduzirJogadaRecebida(String jogada) {//traduz a jogada recebida em String para a enum Jogadas
         switch (jogada) {
             case "PEDRA":
@@ -188,5 +189,5 @@ public class Servidor {
         }
         return null;
     }
-
+    
 }
